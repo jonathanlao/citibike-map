@@ -1,0 +1,11 @@
+#mapid { 
+    height: 500px; 
+}
+
+body {
+  padding: 10px;
+  text-align: center;
+  background: #07caec;
+  color: black;
+  font-size: 20px;
+}
