@@ -1,5 +1,6 @@
 let stations = global_stations;
 let trips = global_trips;
+let tripsView = false;
 
 let mymap = L.map('mapid').setView([40.673563, -73.959635], 14);
 let accessToken = 'pk.eyJ1Ijoiam9uYXRoYW5sYW8iLCJhIjoiY2s5YWJoYjdpMXE3ejNwbDJ1eWNyc25hciJ9.FIaoasirDh9FlJljk7vgXw'
@@ -64,17 +65,36 @@ let allStations = L.layerGroup(markers).addTo(mymap);
 
 function onStationClick(station) {
   return function (e) {
+    tripsView = true;
     showTrips(station);
     allStations.clearLayers();
   }
 }
 
-function getStationInfo(station) {
+function getTime(seconds) {
+  if (seconds > 60) {
+    let minutes = Math.floor(seconds / 60);
+    let remainder = seconds % 60;
+    return minutes + "m" + (remainder ? remainder + "s" : "");
+  }
+  else {
+    return seconds + "s"
+  }
+}
+
+function getStationInfo(station, isDestination) {
   let id = station.id;
   let tripsFromStation = trips[id];
   let stationInfo = "<b>" + station.stationName + "</b><br>" +
-    "Id: " + station.id + "<br>" +
-    "Total trips from here: " + (tripsFromStation ? tripsFromStation.length : 0);
+    "Id: " + station.id + "<br>";
+  
+  if (isDestination) {
+    stationInfo += "Total trips to here: " + station.trips.length + "<br>" +
+      "Trip length(s) = " + station.trips.join(', ');
+  }
+  else {
+    stationInfo += "Total trips from here: " + (tripsFromStation ? tripsFromStation.length : 0);
+  }
   return stationInfo;
 }
 
@@ -92,9 +112,11 @@ function showTrips(station) {
           id: destinationId,
           stationName: trip[8],
           latitude: trip[9],
-          longitude: trip[10]
+          longitude: trip[10],
+          trips: []
         }
       }
+      destinationStations[destinationId].trips.push(getTime(trip[0]))
     });
   }
 
@@ -103,7 +125,7 @@ function showTrips(station) {
   for (let key in destinationStations) {
     destination = destinationStations[key]
     let marker = L.marker([destination.latitude, destination.longitude], {icon: caitlinDestinationIcon})
-      .bindPopup(getStationInfo(destination))
+      .bindPopup(getStationInfo(destination, true))
     destinationMarkers.push(marker);
   }
   let allDestinations = L.layerGroup(destinationMarkers).addTo(mymap);
@@ -119,6 +141,7 @@ function showTrips(station) {
     .addTo(mymap)
     .bindPopup(stationInfo).openPopup()
     .on('click', function(e) {
+      tripsView = false;
       allDestinations.clearLayers();
       marker.removeFrom(mymap)
       allStations = L.layerGroup(markers).addTo(mymap);
@@ -137,6 +160,12 @@ function getRoute(startLat, startLong, endLat, endLong, layerGroup) {
   var req = new XMLHttpRequest();
   req.open('GET', url, true);
   req.onload = function() {
+    //If we goggle trips view off before we have a chance to display all the trips,
+    //ignore processing the response.
+    if (tripsView === false) {
+      return;
+    }
+
     var json = JSON.parse(req.response);
     let coordinates = json.routes[0].geometry.coordinates;
   
