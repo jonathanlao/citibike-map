@@ -1,6 +1,6 @@
-# wheredopeoplecitibike
+# citibike-map
 
-https://jonathanlao.github.io/wheredopeoplecitibike/
+https://jonathanlao.github.io/citibike-map/
 
 A map of all citibike stations in NYC.
 
