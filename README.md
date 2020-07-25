@@ -2,7 +2,7 @@
 
 https://jonathanlao.github.io/citibike-map/
 
-A map of all citibike stations in NYC.
+A map of all citibike stations in NYC. 
 
 Click on a source station to view which stations the bike was eventually dropped off, specifically on Friday July 26th, 2019.
 
